@@ -75,9 +75,20 @@ async function fetchPagination(page) {
 
 async function main(url) {
 	try {
-		const browser = await puppeteer.launch({ headless: true, args: [ '--no-sandbox' ] });
+		const chromeOptions = {
+			headless: true,
+			defaultViewport: null,
+			args: [
+				"--incognito",
+				"--no-sandbox",
+				"--single-process",
+				"--no-zygote"
+			],
+		};
+		const browser = await puppeteer.launch(chromeOptions);
 		const page = await browser.newPage();
-		page.setViewport({ width: 1280, height: 926 });
+		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+		await page.setViewport({ width: 1280, height: 926 });
 		await page.goto(url);
 		await autoScroll(page);
 		let div_selector_to_remove = '.__react_component_tooltip';

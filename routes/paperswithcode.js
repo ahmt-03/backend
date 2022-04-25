@@ -103,8 +103,20 @@ async function fetchPagination(page) {
 
 async function main(url) {
 	try {
-		const browser = await puppeteer.launch({ headless: true, args: [ '--no-sandbox' ] });
+		const chromeOptions = {
+			headless: true,
+			defaultViewport: null,
+			args: [
+				"--incognito",
+				"--no-sandbox",
+				"--single-process",
+				"--no-zygote"
+			],
+		};
+		const browser = await puppeteer.launch(chromeOptions);
 		const page = await browser.newPage();
+		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+		await page.setViewport({width:960,height:768});
 		await page.goto(url);
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
