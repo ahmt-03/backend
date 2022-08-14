@@ -9,13 +9,13 @@ const Data = require('../models/dataModel');
 async function fetchData(page) {
 	const html = await page.content();
 	const $ = cheerio.load(html);
-	const listings = $('.sc-laZMeE')
+	const listings = $('.bibdZV')
 		.map((index, element) => {
-			const titleElement = $(element).find('.sc-iCoGMd');
+			const titleElement = $(element).find('.izULIq');
 			const urlElement = $(element).find('a');
-			const imageElement = $(element).find('.sc-jffHpj');
+			const imageElement = $(element).find('.ezGTWV');
 			const image2Element = $(imageElement).find('div');
-			const authorElement = $(element).find('.sc-dPaNzc');
+			const authorElement = $(element).find('.ittBhE');
 			const datasetDescriptionElements = $(element).find('span').toArray();
 			const datasetDescription = datasetDescriptionElements.flatMap((element) => {
 				return [ $(element).text() ];
@@ -78,16 +78,13 @@ async function main(url) {
 		const chromeOptions = {
 			headless: true,
 			defaultViewport: null,
-			args: [
-				"--incognito",
-				"--no-sandbox",
-				"--single-process",
-				"--no-zygote"
-			],
+			args: [ '--incognito', '--no-sandbox', '--single-process', '--no-zygote' ]
 		};
 		const browser = await puppeteer.launch(chromeOptions);
 		const page = await browser.newPage();
-		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+		await page.setUserAgent(
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
+		);
 		await page.setViewport({ width: 1280, height: 926 });
 		await page.goto(url);
 		await autoScroll(page);
