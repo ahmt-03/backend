@@ -14,17 +14,12 @@ const microsoftresearchRouter = require('./routes/microsoftresearch');
 const timeRouter = require('./routes/time');
 const protectRoute = require('./middlewares/protectRouteMiddleware');
 
-const corsOptions ={
-    origin:'*', 
-    credentials:true,            //access-control-allow-credentials:true
-    optionSuccessStatus:200,
- }
 const app = express();
 dotenv.config();
 connectDB();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors(corsOptions));
+app.use(cors({ credentials: true, origin: true }));
 app.use('/api/auth', authRouter);
 app.use('/api/paperswithcode', protectRoute, paperswithcodeRouter);
 app.use('/api/zenodo', protectRoute, zenodoRouter);
