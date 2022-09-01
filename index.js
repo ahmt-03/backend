@@ -19,7 +19,7 @@ dotenv.config();
 connectDB();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({ credentials: true, origin: '*' }));
 app.use('/api/auth', authRouter);
 app.use('/api/paperswithcode', protectRoute, paperswithcodeRouter);
 app.use('/api/zenodo', protectRoute, zenodoRouter);
