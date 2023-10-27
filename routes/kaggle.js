@@ -9,11 +9,11 @@ const Data = require("../models/dataModel");
 async function fetchData(page) {
   const html = await page.content();
   const $ = cheerio.load(html);
-  const listings = $(".hfJycS")
+  const listings = $(".km-list")
     .map((index, element) => {
       const titleElement = $(element).find(".izULIq");
       const urlElement = $(element).find("a");
-      const imageElement = $(element).find(".bMKNkA");
+      const imageElement = $(element).find(".jeLnHj");
       const image2Element = $(imageElement).find("div");
       const authorElement = $(element).find(".ittBhE");
       const datasetDescriptionElements = $(element).find("span").toArray();
