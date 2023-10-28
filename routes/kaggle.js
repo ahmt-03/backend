@@ -94,7 +94,8 @@ async function main(url) {
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
     );
     await page.setViewport({ width: 1280, height: 926 });
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
     await autoScroll(page);
     let div_selector_to_remove = ".__react_component_tooltip";
     await page.evaluate((sel) => {
@@ -103,9 +104,12 @@ async function main(url) {
         elements[i].parentNode.removeChild(elements[i]);
       }
     }, div_selector_to_remove);
+
     const data = await fetchData(page);
     const pagination = await fetchPagination(page);
+
     await browser.close();
+
     return { data, pagination };
   } catch (error) {
     console.log(error);
@@ -128,6 +132,7 @@ router.post("/scraper", async (req, res) => {
       search: { url, keyword, filters: { ...parameters.query } },
       data: data.data,
     });
+
     await dataDB.save();
     res.send(data);
   } catch (error) {
