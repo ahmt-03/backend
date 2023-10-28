@@ -20,7 +20,7 @@ async function fetchData(page) {
         const listings = $('.items .item').map((index, element) => {
 
 			console.log("Mapping items");
-			
+
             // Extract the title and href attributes
             const titleElement = $(element).find('h2.header a');
             const title = titleElement.text().trim();
@@ -62,45 +62,57 @@ async function fetchData(page) {
 
 
 async function fetchFilters(page) {
-	const html = await page.content();
-	const $ = cheerio.load(html);
-	const listings = $('.panel-default')
-		.map((index, element) => {
-			const filterHeadingElement = $(element).find('.panel-heading');
-			const filterHeading = $(filterHeadingElement).text().trim();
-			const filterBodyElement = $(element).find('.panel-body');
-			const filterElements = $(filterBodyElement).find('ul>li').toArray();
-			const filterListings = filterElements.flatMap((filterElement) => {
-				// find parent of filterElement
-				const parentElement = $(filterElement).parent();
-				// find value of ng-repeat attr of parent
-				const ngRepeat = $(parentElement).attr('ng-repeat');
-				// if ngRepeat contains subValue return []
-				if (ngRepeat.includes('subValue')) {
-					return [];
-				}
-				const inputElement = $(filterElement).find('input');
-				// check if checked attribute is present
-				const isChecked = $(inputElement).attr('checked') ? true : false;
-				const filterText = $(filterElement)
-					.clone()
-					.children() //select all the children
-					.remove() //remove all the children
-					.end() //again go back to selected element
-					.text()
-					.replace(/\r?\n|\r/g, ' ')
-					.trim();
-				const filterTextName = filterText.split(' ')[0];
-				const filterTextNumber = filterText.split(' ')[1];
-				return isEmpty(filterText) ? [] : [ { filterTextName, filterTextNumber, isChecked } ];
-			});
-			return {
-				filterHeading,
-				filterListings
-			};
-		})
-		.get();
-	return listings;
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    // This will hold the final results.
+    let filterCategories = [];
+
+    // The containers for the filters seem to be represented by the "facet-container" class in the provided HTML.
+    // We'll iterate over each of these containers.
+    $('.facet-container').each((index, container) => {
+
+        // The category of the filter can be found in the 'h2' element (based on your HTML structure).
+        const filterCategory = $(container).find('h2.header').text().trim();
+
+        // This will hold individual filters for the current category.
+        let filters = [];
+
+        // Now, we need to extract the filters themselves, which are in elements with role="listitem".
+        $(container).find('[role="listitem"]').each((idx, elem) => {
+            // The filter's name seems to be in a 'label' tag.
+            const filterName = $(elem).find('label').text().trim();
+
+            // The count is in an element with the 'facet-count' class, based on the provided HTML.
+            const filterCountText = $(elem).find('.facet-count').text().trim();
+            // Clean up and parse the filter count text.
+            const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0;
+
+            // Determine whether the filter is active by the presence of the 'checked' attribute.
+            const isChecked = $(elem).find('input[type="checkbox"]').attr('checked') ? true : false;
+
+            // Create a filter object.
+            const filter = {
+                filterName,
+                filterCount, // Optional: depends on whether you want to include this information.
+                isChecked
+            };
+
+            // Add the filter to the current category's filters.
+            filters.push(filter);
+        });
+
+        // If we have any filters, we add them under the current category.
+        if (filters.length > 0) {
+            filterCategories.push({
+                category: filterCategory,
+                filters: filters,
+            });
+        }
+    });
+
+    // The result is a list of categories, each with its own list of filters.
+    return filterCategories;
 }
 
 async function fetchPagination(page) {
