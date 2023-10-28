@@ -140,6 +140,16 @@ async function main(url) {
 		const page = await browser.newPage();
 		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
 		await page.setViewport({width:960,height:768});
+
+		await page.setRequestInterception(true);
+page.on('request', (request) => {
+    console.log(`>> ${request.method()} ${request.url()}`); // This will log all network requests initiated by the page
+    request.continue();
+});
+page.on('response', (response) => {
+    console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
+});
+
 		await page.goto(url);
 
 		// wait for timeout
