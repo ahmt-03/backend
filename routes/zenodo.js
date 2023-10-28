@@ -13,6 +13,7 @@ async function fetchData(page) {
 
         // Extract the page content and use Cheerio to traverse it
         const html = await page.content();
+		console.log("Page content retrieved, parsing...");
         const $ = cheerio.load(html);
 
         // Find each '.item' within the '.items' container, which represents each record
@@ -39,6 +40,8 @@ async function fetchData(page) {
             const uploaded = $(element).find('small p').first().text().trim(); // e.g., "Uploaded on April 12, 2023"
             const views = parseInt($(element).find('.eye.icon').closest('.label').text().trim()) || 0;
             const downloads = parseInt($(element).find('.download.icon').closest('.label').text().trim()) || 0;
+			
+			console.log("Processed item: " + title); // Log each item being processed
 
             // Return the constructed object
             return {
@@ -49,9 +52,11 @@ async function fetchData(page) {
             };
         }).get(); 
 
+		console.log(`Extracted ${listings.length} listings`);
+
         return listings;
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching data:', error.message);
         return [];
     }
 }
@@ -119,7 +124,7 @@ async function fetchPagination(page) {
 async function main(url) {
 	try {
 		const chromeOptions = {
-			headless: true,
+			headless: false,
 			defaultViewport: null,
 			args: [
 				"--incognito",
@@ -128,6 +133,9 @@ async function main(url) {
 				"--no-zygote"
 			],
 		};
+
+		console.log("Launching browser...");
+
 		const browser = await puppeteer.launch(chromeOptions);
 		const page = await browser.newPage();
 		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
@@ -136,10 +144,19 @@ async function main(url) {
 
 		// wait for timeout
 		await page.waitForTimeout(30000);
+
+		console.log("Fetching data...");
+
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
 		const pagination = await fetchPagination(page);
+
+		console.log("Closing browser...");
+
 		await browser.close();
+
+		console.log("Operation completed successfully.");
+
 		return { data, filters, pagination };
 	} catch (error) {
 		console.log(error);
@@ -150,11 +167,14 @@ async function main(url) {
 router.post('/scraper', async (req, res) => {
 	try {
 		const { url } = req.body;
+
+		console.log("Received scrape request for URL: " + url);
 		const data = await main(url);
 		const parameters = queryString.parseUrl(url);
 		let keyword = parameters.query.q;
 		delete parameters.query.q;
 
+		console.log("Saving to database...");
 		const dataDB = new Data({
 			name: req.user.name,
 			email: req.user.email,
@@ -163,10 +183,14 @@ router.post('/scraper', async (req, res) => {
 			data: data.data
 		});
 		await dataDB.save();
+
+		console.log("Data saved successfully.");
 		res.send(data);
 	} catch (error) {
 		console.log(error);
-		res.send({ data: [], filters: [], pagination: [] });
+
+		console.error('Error during scraping process:', error.message); // Detailed error message
+		res.status(500).send({ data: [], filters: [], pagination: [] });
 	}
 });
 
