@@ -133,8 +133,11 @@ async function main(url) {
 		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
 		await page.setViewport({width:960,height:768});
 		await page.goto(url);
-		// wait for timeout 5 sec
-		await page.waitForTimeout(5000);
+
+		await page.screenshot({ path: 'example.png' });
+		
+		// wait for timeout 12 sec
+		await page.waitForTimeout(12000);
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
 		const pagination = await fetchPagination(page);
