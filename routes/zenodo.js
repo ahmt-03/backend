@@ -7,45 +7,55 @@ const queryString = require('query-string');
 const Data = require('../models/dataModel');
 
 async function fetchData(page) {
-	try {
-		// wait for selector .record-elem
-		await page.waitForSelector('.record-elem', { timeout: 10000 });
-		const html = await page.content();
-		const $ = cheerio.load(html);
-		const listings = $('.record-elem')
-			.map((index, element) => {
-				const h4Element = $(element).find('h4');
-				const titleElement = $(h4Element).find('a');
-				const title = $(titleElement).text();
-				const url = $(titleElement).attr('ng-href');
-				const descriptionElements = $(element).find('p').toArray();
-				const authorElement = descriptionElements[0];
-				const authorsArray = $(authorElement).find('span').toArray();
-				const authors = authorsArray.flatMap((author) => {
-					return isEmpty($(author).text().replace(/\r?\n|\r/g, ' ').trim())
-						? []
-						: [ $(author).text().replace(/\r?\n|\r/g, ' ').trim() ];
-				});
+    try {
+        // Wait for the search results to load. We are looking for the container of the items.
+        await page.waitForSelector('.items', { timeout: 10000 });
 
-				const description = descriptionElements.slice(1).flatMap((descriptionElement) => {
-					return isEmpty($(descriptionElement).text().replace(/\r?\n|\r/g, ' ').trim())
-						? []
-						: [ $(descriptionElement).text().replace(/\r?\n|\r/g, ' ').trim() ];
-				});
-				return {
-					title,
-					authors,
-					description,
-					url: 'https://zenodo.org' + url
-				};
-			})
-			.get();
-		return listings;
-	} catch (error) {
-		console.log(error);
-		return [];
-	}
+        // Extract the page content and use Cheerio to traverse it
+        const html = await page.content();
+        const $ = cheerio.load(html);
+
+        // Find each '.item' within the '.items' container, which represents each record
+        const listings = $('.items .item').map((index, element) => {
+            // Extract the title and href attributes
+            const titleElement = $(element).find('h2.header a');
+            const title = titleElement.text().trim();
+            const relativeUrl = titleElement.attr('href');
+
+            // Construct the absolute URL
+            const absoluteUrl = relativeUrl.startsWith('http') 
+                ? relativeUrl 
+                : 'https://zenodo.org' + relativeUrl;
+
+            // Extract the description
+            const description = $(element).find('.description').text().trim();
+
+            // Extract author names; these are within the '.creatibutor-name' class
+            const authors = $(element)
+                .find('.creatibutor-name')
+                .map((i, author) => $(author).text().trim())
+                .get();
+
+            const uploaded = $(element).find('small p').first().text().trim(); // e.g., "Uploaded on April 12, 2023"
+            const views = parseInt($(element).find('.eye.icon').closest('.label').text().trim()) || 0;
+            const downloads = parseInt($(element).find('.download.icon').closest('.label').text().trim()) || 0;
+
+            // Return the constructed object
+            return {
+                title,
+                authors,
+                description,
+				url: absoluteUrl,
+            };
+        }).get(); 
+
+        return listings;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
+    }
 }
+
 
 async function fetchFilters(page) {
 	const html = await page.content();
