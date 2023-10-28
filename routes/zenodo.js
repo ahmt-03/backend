@@ -13,11 +13,14 @@ async function fetchData(page) {
 
         // Extract the page content and use Cheerio to traverse it
         const html = await page.content();
-		console.log("Page content retrieved, parsing...");
+		console.log(html);  // This will print the whole HTML content of the page.
         const $ = cheerio.load(html);
 
         // Find each '.item' within the '.items' container, which represents each record
         const listings = $('.items .item').map((index, element) => {
+
+			console.log("Mapping items");
+			
             // Extract the title and href attributes
             const titleElement = $(element).find('h2.header a');
             const title = titleElement.text().trim();
@@ -37,10 +40,6 @@ async function fetchData(page) {
                 .map((i, author) => $(author).text().trim())
                 .get();
 
-            const uploaded = $(element).find('small p').first().text().trim(); // e.g., "Uploaded on April 12, 2023"
-            const views = parseInt($(element).find('.eye.icon').closest('.label').text().trim()) || 0;
-            const downloads = parseInt($(element).find('.download.icon').closest('.label').text().trim()) || 0;
-			
 			console.log("Processed item: " + title); // Log each item being processed
 
             // Return the constructed object
