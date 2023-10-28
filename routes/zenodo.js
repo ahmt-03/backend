@@ -134,10 +134,11 @@ async function main(url) {
 		await page.setViewport({width:960,height:768});
 		await page.goto(url);
 
-		await page.screenshot({ path: 'example.png' });
-		
-		// wait for timeout 12 sec
-		await page.waitForTimeout(12000);
+		console.log(await page.content());
+
+
+		// wait for timeout
+		await page.waitForTimeout(20000);
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
 		const pagination = await fetchPagination(page);
