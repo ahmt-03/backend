@@ -9,7 +9,7 @@ const Data = require('../models/dataModel');
 async function fetchData(page) {
     try {
         // Wait for the search results to load. We are looking for the container of the items.
-        await page.waitForSelector('.items', { timeout: 70000 });
+        await page.waitForSelector('.items', { timeout: 12000 });
 
         // Extract the page content and use Cheerio to traverse it
         const html = await page.content();
@@ -134,11 +134,8 @@ async function main(url) {
 		await page.setViewport({width:960,height:768});
 		await page.goto(url);
 
-		console.log(await page.content());
-
-
 		// wait for timeout
-		await page.waitForTimeout(40000);
+		await page.waitForTimeout(30000);
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
 		const pagination = await fetchPagination(page);
