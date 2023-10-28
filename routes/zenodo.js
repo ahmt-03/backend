@@ -116,57 +116,60 @@ async function fetchPagination(page) {
 
 
 async function main(url) {
-	try {
-		const chromeOptions = {
-			headless: false,
-			defaultViewport: null,
-			args: [
-				"--incognito",
-				"--no-sandbox",
-				"--single-process",
-				"--no-zygote"
-			],
-		};
+    try {
+        const chromeOptions = {
+            headless: false, // The browser will be visible
+            defaultViewport: null,
+            args: [
+                '--disable-web-security', // Disables web security and allows for cross-origin requests
+                '--disable-features=IsolateOrigins,site-per-process', // Disables site isolation and process isolation
+                '--incognito', // Opens the browser in incognito mode
+                '--no-sandbox', // Disables the sandbox for all process types that are normally sandboxed
+                '--single-process', // Runs the browser and renderer in the same process
+                '--no-zygote' // Disables the use of a zygote process for forking child processes
+                // Add any other arguments you were previously using or need
+            ],
+        };
 
-		console.log("Launching browser...");
+        console.log("Launching browser...");
 
-		const browser = await puppeteer.launch(chromeOptions);
-		const page = await browser.newPage();
-		await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
-		await page.setViewport({width:960,height:768});
+        const browser = await puppeteer.launch(chromeOptions);
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+        await page.setViewport({width:960,height:768});
 
-		await page.setRequestInterception(true);
-page.on('request', (request) => {
-    console.log(`>> ${request.method()} ${request.url()}`); // This will log all network requests initiated by the page
-    request.continue();
-});
-page.on('response', (response) => {
-    console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
-});
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            console.log(`>> ${request.method()} ${request.url()}`); // This will log all network requests initiated by the page
+            request.continue();
+        });
+        page.on('response', (response) => {
+            console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
+        });
 
-await page.goto(url, { waitUntil: 'networkidle0' });
+        await page.goto(url, { waitUntil: 'networkidle0' });
 
-		await page.waitForSelector(".specific-element", { visible: true });
+        await page.waitForSelector(".specific-element", { visible: true }); // Wait for a specific element on the page to be visible
 
+        console.log("Fetching data...");
 
-		console.log("Fetching data...");
+        const data = await fetchData(page);
+        const filters = await fetchFilters(page);
+        const pagination = await fetchPagination(page);
 
-		const data = await fetchData(page);
-		const filters = await fetchFilters(page);
-		const pagination = await fetchPagination(page);
+        console.log("Closing browser...");
 
-		console.log("Closing browser...");
+        await browser.close();
 
-		await browser.close();
+        console.log("Operation completed successfully.");
 
-		console.log("Operation completed successfully.");
-
-		return { data, filters, pagination };
-	} catch (error) {
-		console.log(error);
-		return { data: [], filters: [], pagination: [] };
-	}
+        return { data, filters, pagination };
+    } catch (error) {
+        console.log(error);
+        return { data: [], filters: [], pagination: [] };
+    }
 }
+
 
 router.post('/scraper', async (req, res) => {
 	try {
