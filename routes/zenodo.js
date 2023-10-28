@@ -9,7 +9,7 @@ const Data = require('../models/dataModel');
 async function fetchData(page) {
     try {
         // Wait for the search results to load. We are looking for the container of the items.
-        await page.waitForSelector('.items', { timeout: 10000 });
+        await page.waitForSelector('.items', { timeout: 70000 });
 
         // Extract the page content and use Cheerio to traverse it
         const html = await page.content();
