@@ -8,7 +8,7 @@ const Data = require('../models/dataModel');
 
 async function fetchData(page) {
     try {
-        await page.waitForSelector('.items', { timeout: 12000 });
+        await page.waitForSelector('.items', { timeout: 3000 });
         const html = await page.content();
 		console.log(html);  
         const $ = cheerio.load(html);
