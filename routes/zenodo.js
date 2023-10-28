@@ -8,33 +8,23 @@ const Data = require('../models/dataModel');
 
 async function fetchData(page) {
     try {
-        // Wait for the search results to load. We are looking for the container of the items.
         await page.waitForSelector('.items', { timeout: 12000 });
-
-        // Extract the page content and use Cheerio to traverse it
         const html = await page.content();
-		console.log(html);  // This will print the whole HTML content of the page.
+		console.log(html);  
         const $ = cheerio.load(html);
-
-        // Find each '.item' within the '.items' container, which represents each record
         const listings = $('.items .item').map((index, element) => {
 
 			console.log("Mapping items");
-
-            // Extract the title and href attributes
             const titleElement = $(element).find('h2.header a');
             const title = titleElement.text().trim();
             const relativeUrl = titleElement.attr('href');
 
-            // Construct the absolute URL
             const absoluteUrl = relativeUrl.startsWith('http') 
                 ? relativeUrl 
                 : 'https://zenodo.org' + relativeUrl;
 
-            // Extract the description
             const description = $(element).find('.description').text().trim();
 
-            // Extract author names; these are within the '.creatibutor-name' class
             const authors = $(element)
                 .find('.creatibutor-name')
                 .map((i, author) => $(author).text().trim())
@@ -64,37 +54,23 @@ async function fetchData(page) {
 async function fetchFilters(page) {
     const html = await page.content();
     const $ = cheerio.load(html);
-
-    // This will hold the final results.
     let filterCategories = [];
-
-    // The containers for the filters seem to be represented by the "facet-container" class in the provided HTML.
-    // We'll iterate over each of these containers.
     $('.facet-container').each((index, container) => {
-
-        // The category of the filter can be found in the 'h2' element (based on your HTML structure).
         const filterCategory = $(container).find('h2.header').text().trim();
-
-        // This will hold individual filters for the current category.
         let filters = [];
-
-        // Now, we need to extract the filters themselves, which are in elements with role="listitem".
         $(container).find('[role="listitem"]').each((idx, elem) => {
-            // The filter's name seems to be in a 'label' tag.
+
             const filterName = $(elem).find('label').text().trim();
 
-            // The count is in an element with the 'facet-count' class, based on the provided HTML.
             const filterCountText = $(elem).find('.facet-count').text().trim();
-            // Clean up and parse the filter count text.
             const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0;
 
-            // Determine whether the filter is active by the presence of the 'checked' attribute.
             const isChecked = $(elem).find('input[type="checkbox"]').attr('checked') ? true : false;
 
             // Create a filter object.
             const filter = {
                 filterName,
-                filterCount, // Optional: depends on whether you want to include this information.
+                filterCount,
                 isChecked
             };
 
@@ -111,26 +87,33 @@ async function fetchFilters(page) {
         }
     });
 
-    // The result is a list of categories, each with its own list of filters.
     return filterCategories;
 }
 
+
+
 async function fetchPagination(page) {
-	const html = await page.content();
-	const $ = cheerio.load(html);
-	const pageItemElement = $('.pagination');
-	const pageItemElements = $(pageItemElement).find('li').toArray();
-	const pageItems = $(pageItemElements)
-		.map((index, element) => {
-			const pageName = $(element).text().replace(/\r?\n|\r/g, ' ').trim();
-			return {
-				pageName,
-				isDisabled: $(element).hasClass('disabled')
-			};
-		})
-		.get();
-	return pageItems;
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    const pageItemElements = $('.pagination').find('a[type="pageItem"]').toArray();
+
+    const pageItems = pageItemElements.map(element => {
+        const pageName = $(element).text().replace(/\r?\n|\r/g, ' ').trim();
+        const isDisabled = $(element).attr('aria-disabled') === "true";
+
+        const isActive = $(element).hasClass('active');
+
+        return {
+            pageName,
+            isDisabled,
+            isActive // Added this to determine which page is currently active
+        };
+    });
+
+    return pageItems;
 }
+
 
 async function main(url) {
 	try {
@@ -161,10 +144,10 @@ page.on('response', (response) => {
     console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
 });
 
-		await page.goto(url);
+await page.goto(url, { waitUntil: 'networkidle0' });
 
-		// wait for timeout
-		await page.waitForTimeout(30000);
+		await page.waitForSelector(".specific-element", { visible: true });
+
 
 		console.log("Fetching data...");
 
