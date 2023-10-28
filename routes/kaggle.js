@@ -9,39 +9,35 @@ const Data = require("../models/dataModel");
 async function fetchData(page) {
   const html = await page.content();
   const $ = cheerio.load(html);
-  const listings = $(".deQTnI")
-    .map((index, element) => {
-      const titleElement = $(element).find(".izULIq");
-      const urlElement = $(element).find("a");
-      const imageElement = $(element).find(".juOVue");
-      const image2Element = $(imageElement).find("div");
-      const authorElement = $(element).find(".ittBhE");
-      const datasetDescriptionElements = $(element).find("span").toArray();
-      const datasetDescription = datasetDescriptionElements.flatMap(
-        (element) => {
-          return [$(element).text()];
-        }
-      );
-      const title = $(titleElement).text();
-      const author = $(authorElement).text();
-      const authorUrl =
-        "https://www.kaggle.com" + $(authorElement).attr("href");
-      const url = "https://www.kaggle.com" + $(urlElement).attr("href");
-      const imageUrl = $(image2Element).css("background-image")
-        ? $(image2Element)
-            .css("background-image")
-            .replace(/^url\(['"](.+)['"]\)/, "$1")
-        : null;
-      return {
-        title,
-        url,
-        author,
-        authorUrl,
-        imageUrl,
-        datasetDescription,
-      };
-    })
-    .get();
+  const listings = $(".deQTnI").map((index, element) => {
+    const titleElement = $(element).find(".ibASuG");
+    const urlElement = $(element).find("a.bhqSIB");
+    const imageElement = $(element).find(".juOVue");
+    const authorElement = $(element).find("a.kUdbaN.kYfCVP");
+
+    const title = $(titleElement).text().trim();
+    const url = "https://www.kaggle.com" + $(urlElement).attr("href");
+
+    const style = $(imageElement).attr("style");
+    const match = style && style.match(/url\(["']?(.*?)["']?\)/i);
+    const imageUrl = match ? match[1] : null;
+
+    const author = $(authorElement).text().trim();
+    const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
+
+    const datasetDescriptionElements = $(element).find("span").toArray();
+    const datasetDescription = datasetDescriptionElements.map(el => $(el).text());
+
+    return {
+      title,
+      url,
+      author,
+      authorUrl,
+      imageUrl,
+      datasetDescription,
+    };
+  }).get();
+
   return listings;
 }
 async function autoScroll(page) {
