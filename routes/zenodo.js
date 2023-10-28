@@ -138,7 +138,7 @@ async function main(url) {
 
 
 		// wait for timeout
-		await page.waitForTimeout(20000);
+		await page.waitForTimeout(40000);
 		const data = await fetchData(page);
 		const filters = await fetchFilters(page);
 		const pagination = await fetchPagination(page);
