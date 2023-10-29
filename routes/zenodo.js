@@ -154,6 +154,7 @@ async function main(url) {
 
         const data = await fetchData(page);
         const filters = await fetchFilters(page);
+        console.log("Fetched Filters Data:", filters);
         const pagination = await fetchPagination(page);
 
         console.log("Closing browser...");
