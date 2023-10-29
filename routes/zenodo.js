@@ -118,7 +118,7 @@ async function fetchPagination(page) {
 async function main(url) {
     try {
         const chromeOptions = {
-            headless: false, // The browser will be visible
+            headless: 'new', // The browser will be visible
             defaultViewport: null,
             args: [
                 '--disable-web-security', // Disables web security and allows for cross-origin requests
