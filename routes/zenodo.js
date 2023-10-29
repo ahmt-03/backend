@@ -55,15 +55,15 @@ async function fetchFilters(page) {
     const html = await page.content();
     const $ = cheerio.load(html);
     let filterCategories = [];
+
     $('.facet-container').each((index, container) => {
         const filterCategory = $(container).find('h2.header').text().trim();
         let filters = [];
+
         $(container).find('[role="listitem"]').each((idx, elem) => {
-
             const filterName = $(elem).find('label').text().trim();
-
-            const filterCountText = $(elem).find('.facet-count').text().trim();
-            const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0;
+            const filterCountText = $(elem).find('.facet-count span').text().trim();
+            const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0; // this line remains unchanged
 
             const isChecked = $(elem).find('input[type="checkbox"]').attr('checked') ? true : false;
 
@@ -121,13 +121,12 @@ async function main(url) {
             headless: 'new', // The browser will be visible
             defaultViewport: null,
             args: [
-                '--disable-web-security', // Disables web security and allows for cross-origin requests
-                '--disable-features=IsolateOrigins,site-per-process', // Disables site isolation and process isolation
-                '--incognito', // Opens the browser in incognito mode
-                '--no-sandbox', // Disables the sandbox for all process types that are normally sandboxed
-                //'--single-process', // Runs the browser and renderer in the same process
-                '--no-zygote' // Disables the use of a zygote process for forking child processes
-                // Add any other arguments you were previously using or need
+                '--disable-web-security', 
+                '--disable-features=IsolateOrigins,site-per-process', 
+                '--incognito', 
+                '--no-sandbox', 
+                //'--single-process',
+                '--no-zygote' 
             ],
         };
 
@@ -140,16 +139,17 @@ async function main(url) {
 
         await page.setRequestInterception(true);
         page.on('request', (request) => {
-            console.log(`>> ${request.method()} ${request.url()}`); // This will log all network requests initiated by the page
+            console.log(`>> ${request.method()} ${request.url()}`); 
             request.continue();
         });
         page.on('response', (response) => {
-            console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
+            console.log(`<< ${response.status()} ${response.url()}`); 
         });
 
         await page.goto(url, { waitUntil: 'networkidle0' ,timeout:0});
+        await page.waitForSelector(".ui.grid", { visible: true }); 
+        await page.waitForSelector('.facet-container', { visible: true, timeout: 5000 });
 
-        await page.waitForSelector(".ui.grid", { visible: true }); // Wait for a specific element on the page to be visible
 
         console.log("Fetching data...");
 
