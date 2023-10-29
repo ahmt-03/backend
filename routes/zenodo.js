@@ -148,7 +148,7 @@ async function main(url) {
 
         await page.goto(url, { waitUntil: 'networkidle0' ,timeout:0});
         await page.waitForSelector(".ui.grid", { visible: true }); 
-        await page.waitForSelector('.facet-container', { visible: true, timeout: 5000 });
+        await page.waitForSelector('.facet-container', { visible: true });
 
 
         console.log("Fetching data...");
