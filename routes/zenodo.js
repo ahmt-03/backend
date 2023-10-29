@@ -56,29 +56,26 @@ async function fetchFilters(page) {
     const $ = cheerio.load(html);
     let filterCategories = [];
 
-    $('.facet-container').each((index, container) => {
+    // Update the selector to target child divs under the main div with the specific aria-label
+    $('[aria-label="Search filters"] > .facet-container').each((index, container) => {
         const filterCategory = $(container).find('h2.header').text().trim();
         let filters = [];
 
         $(container).find('[role="listitem"]').each((idx, elem) => {
             const filterName = $(elem).find('label').text().trim();
             const filterCountText = $(elem).find('.facet-count span').text().trim();
-            const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0; // this line remains unchanged
+            const filterCount = parseInt(filterCountText.replace(/[^\d]/g, ''), 10) || 0;
 
             const isChecked = $(elem).find('input[type="checkbox"]').attr('checked') ? true : false;
 
-            // Create a filter object.
             const filter = {
                 filterName,
                 filterCount,
                 isChecked
             };
-
-            // Add the filter to the current category's filters.
             filters.push(filter);
         });
 
-        // If we have any filters, we add them under the current category.
         if (filters.length > 0) {
             filterCategories.push({
                 category: filterCategory,
