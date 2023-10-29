@@ -19,7 +19,7 @@ async function fetchData(page) {
             const title = titleElement.text().trim();
             const relativeUrl = titleElement.attr('href');
 
-            const absoluteUrl = relativeUrl.startsWith('http') 
+            const absoluteUrl = (relativeUrl&&relativeUrl.startsWith('http')) 
                 ? relativeUrl 
                 : 'https://zenodo.org' + relativeUrl;
 
@@ -125,7 +125,7 @@ async function main(url) {
                 '--disable-features=IsolateOrigins,site-per-process', // Disables site isolation and process isolation
                 '--incognito', // Opens the browser in incognito mode
                 '--no-sandbox', // Disables the sandbox for all process types that are normally sandboxed
-                '--single-process', // Runs the browser and renderer in the same process
+                //'--single-process', // Runs the browser and renderer in the same process
                 '--no-zygote' // Disables the use of a zygote process for forking child processes
                 // Add any other arguments you were previously using or need
             ],
@@ -134,7 +134,7 @@ async function main(url) {
         console.log("Launching browser...");
 
         const browser = await puppeteer.launch(chromeOptions);
-        const page = await browser.newPage();
+        const page= await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
         await page.setViewport({width:960,height:768});
 
@@ -147,9 +147,9 @@ async function main(url) {
             console.log(`<< ${response.status()} ${response.url()}`); // This logs all responses
         });
 
-        await page.goto(url, { waitUntil: 'networkidle0' });
+        await page.goto(url, { waitUntil: 'networkidle0' ,timeout:0});
 
-        await page.waitForSelector(".specific-element", { visible: true }); // Wait for a specific element on the page to be visible
+        await page.waitForSelector(".ui.grid", { visible: true }); // Wait for a specific element on the page to be visible
 
         console.log("Fetching data...");
 
