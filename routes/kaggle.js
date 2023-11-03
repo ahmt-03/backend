@@ -9,37 +9,39 @@ const Data = require("../models/dataModel");
 async function fetchData(page) {
   const html = await page.content();
   const $ = cheerio.load(html);
-  const listings = $(".deQTnI").map((index, element) => {
-    const titleElement = $(element).find(".ibASuG");
-    const urlElement = $(element).find("a.bhqSIB");
-    const imageElement = $(element).find(".juOVue");
-    const authorElement = $(element).find("a.kUdbaN.kYfCVP");
 
-    const title = $(titleElement).text().trim();
-    const url = "https://www.kaggle.com" + $(urlElement).attr("href");
+  const listings = $("li[role='listitem']").map((index, element) => {
+      const titleElement = $(element).find("div[aria-label] > a > div > div:nth-child(2) > div");
+      const urlElement = $(element).find("div[aria-label] > a");
+      const imageElement = $(element).find("div[style*='background-image']");
+      const authorElement = $(element).find("a[href*='/']:not([href*='/datasets/'])");
 
-    const style = $(imageElement).attr("style");
-    const match = style && style.match(/url\(["']?(.*?)["']?\)/i);
-    const imageUrl = match ? match[1] : null;
+      const title = $(titleElement).text().trim();
+      const url = "https://www.kaggle.com" + $(urlElement).attr("href");
 
-    const author = $(authorElement).text().trim();
-    const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
+      const style = $(imageElement).attr("style");
+      const match = style && style.match(/url\(["']?(.*?)["']?\)/i);
+      const imageUrl = match ? match[1] : null;
 
-    const datasetDescriptionElements = $(element).find("span").toArray();
-    const datasetDescription = datasetDescriptionElements.map(el => $(el).text());
+      const author = $(authorElement).text().trim();
+      const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
 
-    return {
-      title,
-      url,
-      author,
-      authorUrl,
-      imageUrl,
-      datasetDescription,
-    };
+      const datasetDescriptionElements = $(element).find("span:not([title])").toArray();
+      const datasetDescription = datasetDescriptionElements.map(el => $(el).text());
+
+      return {
+          title,
+          url,
+          author,
+          authorUrl,
+          imageUrl,
+          datasetDescription,
+      };
   }).get();
 
   return listings;
 }
+
 async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
