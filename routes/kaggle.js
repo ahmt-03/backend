@@ -11,10 +11,10 @@ async function fetchData(page) {
   const $ = cheerio.load(html);
 
   const listings = $("li[role='listitem']").map((index, element) => {
-      const titleElement = $(element).find("div[aria-label] > a > div > div:nth-child(2) > div");
-      const urlElement = $(element).find("div[aria-label] > a");
-      const imageElement = $(element).find("div[style*='background-image']");
-      const authorElement = $(element).find("a[href*='/']:not([href*='/datasets/'])");
+      const titleElement = $(element).find(".sc-beqWaB.sc-fGFwAa.sc-eYhfvQ.ibASuG");
+      const urlElement = $(element).find("a.sc-gAfzvj.hbMcwx");
+      const imageElement = $(element).find(".sc-hpnMLR.hmflrF");
+      const authorElement = $(element).find("a.sc-jegxcv.sc-cbelXg.kUdbaN.kYfCVP");
 
       const title = $(titleElement).text().trim();
       const url = "https://www.kaggle.com" + $(urlElement).attr("href");
@@ -26,7 +26,7 @@ async function fetchData(page) {
       const author = $(authorElement).text().trim();
       const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
 
-      const datasetDescriptionElements = $(element).find("span:not([title])").toArray();
+      const datasetDescriptionElements = $(element).find("span.sc-lnAgIa.sc-iKGpAt.sc-iqavZe.bqETvQ.kKrujI.igKnYa").toArray();
       const datasetDescription = datasetDescriptionElements.map(el => $(el).text());
 
       return {
@@ -41,6 +41,7 @@ async function fetchData(page) {
 
   return listings;
 }
+
 
 async function autoScroll(page) {
   await page.evaluate(async () => {
