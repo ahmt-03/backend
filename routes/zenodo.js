@@ -7,47 +7,48 @@ const queryString = require('query-string');
 const Data = require('../models/dataModel');
 
 async function fetchData(page) {
-  try {
-    await page.waitForSelector('.item', { timeout: 3000 });
-    const html = await page.content();
-    console.log(html);
-    const $ = cheerio.load(html);
-    const listings = $('.item').map((index, element) => {
-      // Extract the title and the URL to the record
-      const titleElement = $(element).find('h2.header a');
-      const title = titleElement.text().trim();
-      const url = 'https://zenodo.org' + titleElement.attr('href');
+    try {
+        await page.waitForSelector('.items', { timeout: 3000 });
+        const html = await page.content();
+		console.log(html);  
+        const $ = cheerio.load(html);
+        const listings = $('.items .item').map((index, element) => {
 
-      // Extract the description
-      const description = $(element).find('.description').text().trim();
+			console.log("Mapping items");
+            const titleElement = $(element).find('h2.header a');
+            const title = titleElement.text().trim();
+            const relativeUrl = titleElement.attr('href');
 
-      // Extract the authors, which seem to be within elements with the class 'creatibutor-name'
-      const authors = $(element)
-        .find('.creatibutor-name')
-        .map((idx, author) => $(author).text().trim())
-        .get();
+            const absoluteUrl = (relativeUrl&&relativeUrl.startsWith('http')) 
+                ? relativeUrl 
+                : 'https://zenodo.org' + relativeUrl;
 
-      // Log each item being processed for debugging
-      console.log("Processed item: ", { title, url, authors, description });
+            const description = $(element).find('.description').text().trim();
 
-      // Return the constructed object
-      return {
-        title,
-        url,
-        authors,
-        description,
-      };
-    }).get();
+            const authors = $(element)
+                .find('.creatibutor-name')
+                .map((i, author) => $(author).text().trim())
+                .get();
 
-    console.log(`Extracted ${listings.length} listings`);
+			console.log("Processed item: " + title); // Log each item being processed
 
-    return listings;
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    return [];
-  }
+            // Return the constructed object
+            return {
+                title,
+                authors,
+                description,
+				url: absoluteUrl,
+            };
+        }).get(); 
+
+		console.log(`Extracted ${listings.length} listings`);
+
+        return listings;
+    } catch (error) {
+        console.error('Error fetching data:', error.message);
+        return [];
+    }
 }
-
 
 
 async function fetchFilters(page) {
