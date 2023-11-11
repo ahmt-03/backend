@@ -13,38 +13,33 @@ async function fetchData(page) {
   const listings = $("li[role='listitem']").map((index, element) => {
       const titleElement = $(element).find(".sc-beqWaB.sc-fGFwAa.sc-eYhfvQ.ibASuG");
       const urlElement = $(element).find("a.sc-gAfzvj.hbMcwx");
-      const imageElement = $(element).find(".sc-kwdcip.kEANfW");
+      const imageStyle = $(element).find(".sc-kwdcip.kEANfW").attr("style");
       const authorElement = $(element).find("a.sc-jegxcv.sc-cbelXg.kUdbaN.kYfCVP");
 
       const title = $(titleElement).text().trim();
       const url = "https://www.kaggle.com" + $(urlElement).attr("href");
 
-      const style = $(imageElement).attr("style");
-      console.log(style);
-      const match = style && style.match(/url\(["']?(.*?)["']?\)/i);
-      console.log(match);
-      const imageUrl = match ? match[1] : null;
-      console.log(imageUrl);
+      const imageUrlMatch = imageStyle && imageStyle.match(/url\(["']?(.+?)["']?\)/);
+      const imageUrl = imageUrlMatch ? imageUrlMatch[1] : null;
 
       const author = $(authorElement).text().trim();
       const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
 
       const datasetDescriptionElements = $(element).find("span.sc-lnAgIa.sc-iKGpAt.sc-iqavZe.bqETvQ.kKrujI.igKnYa").toArray();
-      const datasetDescription = datasetDescriptionElements.map(el => $(el).text());
+      const datasetDescription = datasetDescriptionElements.map(el => $(el).text().trim());
 
       return {
           title,
           url,
           author,
           authorUrl,
-          imageUrl,
+          imageUrl, // Ensure this field is correctly mapped in your data model
           datasetDescription,
       };
   }).get();
 
   return listings;
 }
-
 
 async function autoScroll(page) {
   await page.evaluate(async () => {
