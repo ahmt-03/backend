@@ -25,14 +25,8 @@ async function fetchData(page) {
     console.log(`Style Attribute: ${imageStyle}`);
 
 
-      if (imageStyle) {
-      const imageUrlMatch = imageStyle.match(/url\(["']?(.+?)["']?\)/);
-      console.log(`Image URL Match:`, imageUrlMatch);
+      const imageUrlMatch = imageStyle && imageStyle.match(/url\(["']?(.+?)["']?\)/);
       const imageUrl = imageUrlMatch ? imageUrlMatch[1] : null;
-      console.log(`Image URL: ${imageUrl}`);
-    } else {
-      console.log('Image style attribute not found or does not match expected format.');
-    }
 
       const author = $(authorElement).text().trim();
       const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
