@@ -13,7 +13,7 @@ async function fetchData(page) {
   const listings = $("li[role='listitem']").map((index, element) => {
       const titleElement = $(element).find(".sc-beqWaB.sc-fGFwAa.sc-eYhfvQ.ibASuG");
       const urlElement = $(element).find("a.sc-gAfzvj.hbMcwx");
-      const imageElement = $(element).find(".sc-hpnMLR.hmflrF");
+      const imageElement = $(element).find(".sc-kwdcip.kEANfW");
       const authorElement = $(element).find("a.sc-jegxcv.sc-cbelXg.kUdbaN.kYfCVP");
 
       const title = $(titleElement).text().trim();
