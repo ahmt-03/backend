@@ -20,8 +20,11 @@ async function fetchData(page) {
       const url = "https://www.kaggle.com" + $(urlElement).attr("href");
 
       const style = $(imageElement).attr("style");
+      console.log(style);
       const match = style && style.match(/url\(["']?(.*?)["']?\)/i);
+      console.log(match);
       const imageUrl = match ? match[1] : null;
+      console.log(imageUrl);
 
       const author = $(authorElement).text().trim();
       const authorUrl = "https://www.kaggle.com" + $(authorElement).attr("href");
